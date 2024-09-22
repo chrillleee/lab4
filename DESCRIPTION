@@ -5,8 +5,8 @@ Version: 1.0
 Date: 2024-09-22
 Author: Trace and Christian
 Maintainer: <qincu578@student.liu.se"> <chjon338@student.liu.se> 
-Description: This is a description
-License: GPL-3 + file LICENSE
+Description: This package will provide functions for linjear regression. 
+License: MIT
 Encoding: UTF-8
 Depends: R (>= 3.5.0)
 Suggests: testthat (>= 3.0.0)
