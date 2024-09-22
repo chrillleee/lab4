@@ -1,12 +1,18 @@
 Package: lab4
 Type: Package
-Title: What the Package Does (Short Line)
+Title: Lab3 
 Version: 1.0
 Date: 2024-09-22
 Author: Trace and Christian
-Maintainer: Trace and Christian chjon338@student.liu.se
-Description: More about what it does (maybe more than one line).
-License: MIT
+Maintainer: <qincu578@student.liu.se"> <chjon338@student.liu.se> 
+Description: This is a description
+License: GPL-3 + file LICENSE
+Encoding: UTF-8
+Depends: R (>= 3.5.0)
+Suggests: testthat (>= 3.0.0)
+Config/testthat/edition: 3
+NeedsCompilation: no
+Packaged: 2022-08-22 09:04:00 UTC; kbart
 Imports:
     testthat
 RoxygenNote: 7.3.2
