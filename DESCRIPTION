@@ -1,0 +1,12 @@
+Package: lab4
+Type: Package
+Title: What the Package Does (Short Line)
+Version: 1.0
+Date: 2024-09-22
+Author: Trace and Christian
+Maintainer: Trace and Christian chjon338@student.liu.se
+Description: More about what it does (maybe more than one line).
+License: MIT
+Imports:
+    testthat
+RoxygenNote: 7.3.2
