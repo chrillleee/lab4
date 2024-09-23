@@ -10,7 +10,7 @@
 #' @references
 #' Wikipedia: \href{https://en.wikipedia.org/wiki/Dijkstra\%27s_algorithm}{Dijkstra's algorithm}
 #' @export
-linreg <-
-function(formula, data){
-    print("hello")
+
+linreg <-function(formula, data){
+  return(linregClass$new(formula, data))
 }
