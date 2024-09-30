@@ -83,11 +83,65 @@ linreg <- setRefClass(
     calculateCumulativeDistribution = function(){
         .self$cumulativeDistribution <- pt(.self$tValues, .self$dof)
     },
-    print = function() {},
-    plot = function() {},
-    resid = function() {},
-    pred = function() {},
-    coef = function() {},
-    summary = function() {}
+    print = function() {
+      cat("linreg(formula =", deparse(self$formula), ", data =", deparse(substitute(self$data)), ")\n")
+      cat("\nCoefficients:\n")
+      for (name in names(.self$regressionCoeff)) {
+        cat(sprintf("%-15s", name))
+      }
+      cat("\n")
+      for (coef in .self$regressionCoeff) {
+        cat(sprintf("%-15.4f", coef))
+      }
+      cat("\n")
+    },
+    plot = function() {
+      ggplot() +
+        geom_point(aes(x = .self$fittedValues, y = .self$residuals, color = "red"), 
+                   size = 3, 
+                   alpha = 0.7, 
+                   shape = 1, 
+                   stroke = 1.5, 
+                   fill = NA) + 
+        labs(title = "Residuals vs Fitted",
+             x = "Fitted values",
+             y = "Residuals") +  
+        theme_minimal() 
+      
+      standardizedResiduals <- abs(.self$residuals / .self$residualVariance ** 0.5) ** 0.5
+      ggplot() +
+        geom_point(aes(x = .self$fittedValues, y =standardizedResiduals, color = "red"), 
+                   size = 3, 
+                   alpha = 0.7, 
+                   shape = 1, 
+                   stroke = 1.5, 
+                   fill = NA) + 
+        labs(title = "Scale-Location",
+             x = "Fitted values",
+             y = expression(sqrt(abs("Standardized Residuals")))) +  
+        theme_minimal() 
+    },
+    resid = function() {
+      return(.self$residuals)
+    },
+    pred = function() {
+      return(.self$fittedValues)
+    },
+    coef = function() {
+      output <- as.vector(t(.self$regressionCoeff))
+      names <- rownames(.self$regressionCoeff)
+      names(output) <- names
+      base::print(output)
+    },
+    summary = function() {
+      se <- t(t(sqrt(diag(linreg_mod$regressionCoefficientsVariance))))
+      names <- c("Estimate", "Std. Error", "t value", "p value")
+      summary <- cbind(.self$regressionCoeff, se, .self$tValues, .self$cumulativeDistribution)
+      colnames(summary) <- names
+      base::print(summary)
+      cat("\nResidual standard error: ",.self$residualVariance ," ")
+      cat("on ", .self$dof, " degrees of freedom")
+    }
   )
 )
+
