@@ -26,7 +26,8 @@ linreg <- setRefClass(
     residualVariance = "numeric",
     regressionCoefficientsVariance = "matrix",
     tValues = "matrix",
-    cumulativeDistribution  = "matrix"
+    cumulativeDistribution  = "matrix",
+    call = "character"
   ),
   methods = list(
     # constructor
@@ -37,6 +38,7 @@ linreg <- setRefClass(
       .self$data <- data 
       .self$X <- model.matrix(formula, data)  
       .self$y <- all.vars(formula)[1]
+      .self$call <- paste("linreg(formula = ", deparse(formula), ", data =", deparse(substitute(data)), ")")
       .self$calculateRegressionCoeff()
       .self$calculateFittedValues()
       .self$calculateResiduals()
@@ -45,7 +47,6 @@ linreg <- setRefClass(
       .self$calculateRegressionCoefficientsVariance()
       .self$calculateTDistribution()
       .self$calculateCumulativeDistribution()
-
     },  
     printMembers = function() {
       cat("Matrix X:\n")
@@ -84,16 +85,12 @@ linreg <- setRefClass(
         .self$cumulativeDistribution <- pt(.self$tValues, .self$dof)
     },
     print = function() {
-      cat("linreg(formula =", deparse(self$formula), ", data =", deparse(substitute(self$data)), ")\n")
-      cat("\nCoefficients:\n")
-      for (name in names(.self$regressionCoeff)) {
-        cat(sprintf("%-15s", name))
-      }
-      cat("\n")
-      for (coef in .self$regressionCoeff) {
-        cat(sprintf("%-15.4f", coef))
-      }
-      cat("\n")
+      cat(.self$call)
+      cat("\n \n Coefficients:\n")
+      output <- as.vector(t(.self$regressionCoeff))
+      names <- rownames(.self$regressionCoeff)
+      names(output) <- names
+      base::print(output)
     },
     plot = function() {
       ggplot() +
@@ -134,12 +131,12 @@ linreg <- setRefClass(
       base::print(output)
     },
     summary = function() {
-      se <- t(t(sqrt(diag(linreg_mod$regressionCoefficientsVariance))))
+      se <- t(t(sqrt(diag(.self$regressionCoefficientsVariance))))
       names <- c("Estimate", "Std. Error", "t value", "p value")
       summary <- cbind(.self$regressionCoeff, se, .self$tValues, .self$cumulativeDistribution)
       colnames(summary) <- names
       base::print(summary)
-      cat("\nResidual standard error: ",.self$residualVariance ," ")
+      cat("\n Residual standard error: ",.self$residualVariance ," ")
       cat("on ", .self$dof, " degrees of freedom")
     }
   )

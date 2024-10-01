@@ -1,6 +1,6 @@
 Package: lab4
 Type: Package
-Title: Lab3 
+Title: Lab4
 Version: 1.0
 Date: 2024-09-22
 Author: Trace and Christian
@@ -14,4 +14,5 @@ Config/testthat/edition: 3
 NeedsCompilation: no
 Packaged: 2022-08-22 09:04:00 UTC; kbart
 Imports:
+    ggplot2
 RoxygenNote: 7.3.2
