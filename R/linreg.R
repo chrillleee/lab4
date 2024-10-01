@@ -31,7 +31,7 @@ linreg <- setRefClass(
   ),
   methods = list(
     # constructor
-    initialize = function(formula = NA, data = NA) {
+    initialize = function(formula = NA, data = NA, method = NA) {
       stopifnot(rlang::is_formula(formula))
       stopifnot(is.data.frame(data))
       .self$formula <- formula  
@@ -39,6 +39,26 @@ linreg <- setRefClass(
       .self$X <- model.matrix(formula, data)  
       .self$y <- all.vars(formula)[1]
       .self$call <- paste("linreg(formula = ", deparse(formula), ", data =", deparse(substitute(data)), ")")
+
+      # 1.2.2
+       if(is.character(method)){
+        y_ <- .self$data[[.self$y]]
+        qr_decop <- qr(.self$X)
+        q_matrix <- qr.Q(qr_decop)
+        r_matrix <- qr.R(qr_decop) 
+        qt_y <- t(q_matrix) %*% y_
+
+        .self$fittedValues <- q_matrix %*% qt_y
+        .self$regressionCoeff <- solve(r_matrix) %*% qt_y
+        .self$calculateDegreesOfFreedom()
+        .self$residuals <- y_ - .self$fittedValues
+        .self$calculateResidualVariance()
+        .self$regressionCoefficientsVariance <- .self$residualVariance * solve(r_matrix) %*% t(solve(r_matrix))
+
+        .self$calculateTDistribution()
+        .self$calculateCumulativeDistribution()
+      }
+
       .self$calculateRegressionCoeff()
       .self$calculateFittedValues()
       .self$calculateResiduals()
@@ -48,6 +68,7 @@ linreg <- setRefClass(
       .self$calculateTDistribution()
       .self$calculateCumulativeDistribution()
     },  
+
     printMembers = function() {
       cat("Matrix X:\n")
       base::print(.self$cumulativeDistribution)
@@ -55,7 +76,7 @@ linreg <- setRefClass(
     calculateRegressionCoeff = function() {
       transposeX = t(.self$X) 
       X_inverse <- solve(transposeX %*% .self$X)
-      .self$regressionCoeff <- X_inverse %*% transposeX %*% .self$data[[.self$y ]]
+      .self$regressionCoeff <- X_inverse %*% transposeX %*% .self$data[[.self$y]]
     },
     calculateFittedValues = function() {
       .self$fittedValues <- .self$X %*% regressionCoeff
@@ -85,6 +106,7 @@ linreg <- setRefClass(
         .self$cumulativeDistribution <- pt(.self$tValues, .self$dof)
     },
     print = function() {
+      cat("Call: \n")
       cat(.self$call)
       cat("\n \n Coefficients:\n")
       output <- as.vector(t(.self$regressionCoeff))
