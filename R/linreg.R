@@ -1,14 +1,21 @@
 #' linreg
 #'
-#' @description This function implements different linjear regression algorithms.
-#' @param formula A list representing the adjacency list of the graph.
-#' @param data The starting node for the algorithm.
-#' @return A list containing the shortest paths from the source to all other nodes.
+#' @description This function implements different linear regression algorithms.
+#' @param formula A list representing linear regression formula.
+#' @param data The imput data for the model.
+#' @return A object which can return coefficients, residuals, degree of freedom and so on.
 #' @examples
-#' linreg(1, 2)
+#' object <- linreg(formula = Petal.Length ~ Sepal.Width + Sepal.Length, data = iris)
+#' object$print()
+#' object$summary()
+#' object$coef()
+#' object$pred()
+#' object$plot()
+#' object$resid()
 #' 
+
 #' @references
-#' Wikipedia: \href{https://en.wikipedia.org/wiki/Dijkstra\%27s_algorithm}{Dijkstra's algorithm}
+#' Wikipedia: \href{"https://en.wikipedia.org/wiki/Linear_regression"}{Linear Regression}
 #' @export
 #' 
 
@@ -27,7 +34,10 @@ linreg <- setRefClass(
     regressionCoefficientsVariance = "matrix",
     tValues = "matrix",
     cumulativeDistribution  = "matrix",
-    call = "character"
+    residualStandardError = "numeric",
+    call = "character",
+    formula_name = "character",
+    data_name = "character"
   ),
   methods = list(
     # constructor
@@ -38,16 +48,17 @@ linreg <- setRefClass(
       .self$data <- data 
       .self$X <- model.matrix(formula, data)  
       .self$y <- all.vars(formula)[1]
-      .self$call <- paste("linreg(formula = ", deparse(formula), ", data =", deparse(substitute(data)), ")")
-
+      .self$call <- paste("linreg(formula = ", deparse(formula), ", data = ", deparse(substitute(data)), ")", sep = "")
+      # .self$formula_name <-  deparse(formula)
+      # .self$data_name <- deparse(substitute(data))
       # 1.2.2
-       if(is.character(method)){
+      if(is.character(method)){
         y_ <- .self$data[[.self$y]]
         qr_decop <- qr(.self$X)
         q_matrix <- qr.Q(qr_decop)
         r_matrix <- qr.R(qr_decop) 
         qt_y <- t(q_matrix) %*% y_
-
+  
         .self$fittedValues <- q_matrix %*% qt_y
         .self$regressionCoeff <- solve(r_matrix) %*% qt_y
         .self$calculateDegreesOfFreedom()
@@ -55,20 +66,24 @@ linreg <- setRefClass(
         .self$calculateResidualVariance()
         .self$regressionCoefficientsVariance <- .self$residualVariance * solve(r_matrix) %*% t(solve(r_matrix))
 
-        .self$calculateTDistribution()
-        .self$calculateCumulativeDistribution()
-      }
-
-      .self$calculateRegressionCoeff()
-      .self$calculateFittedValues()
-      .self$calculateResiduals()
-      .self$calculateDegreesOfFreedom()
-      .self$calculateResidualVariance()
-      .self$calculateRegressionCoefficientsVariance()
-      .self$calculateTDistribution()
-      .self$calculateCumulativeDistribution()
+        
+       }
+       else if(!is.na(method)){
+         stop("incorrect parameter method")
+       }
+       else{
+        .self$calculateRegressionCoeff()
+        .self$calculateFittedValues()
+        .self$calculateResiduals()
+        .self$calculateDegreesOfFreedom()
+        .self$calculateResidualVariance()
+        .self$calculateRegressionCoefficientsVariance()
+       }
+       .self$calculateTDistribution()
+       .self$calculateCumulativeDistribution()
+       .self$residualStandardError <- caluculateResidualStandardError()
+      
     },  
-
     printMembers = function() {
       cat("Matrix X:\n")
       base::print(.self$cumulativeDistribution)
@@ -86,7 +101,9 @@ linreg <- setRefClass(
     },
     calculateDegreesOfFreedom = function(){
       n_observations <- nrow(.self$data)
-      p_parameters<- ncol(.self$X) - 1  # -1 for the intercept
+      # p_parameters<- ncol(.self$X) - 1  # -1 for the intercept
+      # in the test, the degree of freedom is 147, we might not need to minus the intercept
+      p_parameters<- ncol(.self$X)
       .self$dof <- n_observations - p_parameters
     },
     calculateResidualVariance = function(){
@@ -103,7 +120,10 @@ linreg <- setRefClass(
       .self$tValues <- .self$regressionCoeff / standardErrors
     },
     calculateCumulativeDistribution = function(){
-        .self$cumulativeDistribution <- pt(.self$tValues, .self$dof)
+        .self$cumulativeDistribution <- 2 * (1 - pt(abs(.self$tValues), .self$dof))
+    },
+    caluculateResidualStandardError = function(){
+      .self$residualStandardError <- .self$residualVariance ** 0.5
     },
     print = function() {
       cat("Call: \n")
@@ -111,8 +131,12 @@ linreg <- setRefClass(
       cat("\n \n Coefficients:\n")
       output <- as.vector(t(.self$regressionCoeff))
       names <- rownames(.self$regressionCoeff)
-      names(output) <- names
-      base::print(output)
+      for(name in names)
+        cat(sprintf("%15s", name))
+      
+      cat("\n")
+      for(num in output)
+        cat(sprintf("%15f", num))
     },
     plot = function() {
       ggplot() +
@@ -150,17 +174,44 @@ linreg <- setRefClass(
       output <- as.vector(t(.self$regressionCoeff))
       names <- rownames(.self$regressionCoeff)
       names(output) <- names
+      # aim to pass the unit test, it is necessary to call base::print()
       base::print(output)
     },
     summary = function() {
       se <- t(t(sqrt(diag(.self$regressionCoefficientsVariance))))
-      names <- c("Estimate", "Std. Error", "t value", "p value")
       summary <- cbind(.self$regressionCoeff, se, .self$tValues, .self$cumulativeDistribution)
-      colnames(summary) <- names
-      base::print(summary)
-      cat("\n Residual standard error: ",.self$residualVariance ," ")
-      cat("on ", .self$dof, " degrees of freedom")
+      for(i in 1:nrow(summary)){
+        cat(sprintf("%15s  ", rownames(summary)[i]))
+        for(j in 1:ncol(summary)){
+          if(j == ncol(summary)){
+            p <- summary[i,j]
+            if (p <= 0.0001){
+               cat(sprintf("%15s", "****"))
+            }
+            else if (p <= 0.001) {
+               cat(sprintf("%15s", "***"))
+            }
+            else if (p <= 0.01) {
+               cat(sprintf("%15s", "**"))
+            }
+            else if (p <= 0.05) {
+               cat(sprintf("%15s", "*"))
+            }
+            else{
+              cat(sprintf("%15s", "."))
+            }
+          }
+          else {
+             cat(sprintf("%15f", summary[i,j]))
+          }
+        }
+        cat("\n")
+      }
+      cat("Residual standard error: ", round(.self$residualStandardError, 4), " on ", .self$dof," degrees of freedom", sep = "")
     }
   )
 )
 
+
+#"Sepal.Length( )*1.7[0-9]*( )*0.0[0-9]*( )*27.5[0-9]*( )*.*( )*\\*\\*\\*".
+# Sepal\.Length         1\.775593       0\.064405      27\.569160              \.\\nResidual standard error: 0\.6465 on 147 degrees of freedom"

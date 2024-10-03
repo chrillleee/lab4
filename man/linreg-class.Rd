@@ -6,15 +6,15 @@
 \alias{linreg}
 \title{linreg}
 \arguments{
-\item{formula}{A list representing the adjacency list of the graph.}
+\item{formula}{A list representing linear regression formula.}
 
-\item{data}{The starting node for the algorithm.}
+\item{data}{The imput data for the model.}
 }
 \value{
-A list containing the shortest paths from the source to all other nodes.
+A object which can return coefficients, residuals, degree of freedom and so on.
 }
 \description{
-This function implements different linjear regression algorithms.
+This function implements different linear regression algorithms.
 }
 
 \examples{
@@ -22,5 +22,5 @@ linreg(1, 2)
 
 }
 \references{
-Wikipedia: \href{https://en.wikipedia.org/wiki/Dijkstra\%27s_algorithm}{Dijkstra's algorithm}
+Wikipedia: \href{"https://en.wikipedia.org/wiki/Linear_regression"}{Linear Regression}
 }
