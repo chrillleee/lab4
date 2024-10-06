@@ -6,7 +6,7 @@
 #' @return A object which can return coefficients, residuals, degree of freedom and so on.
 #' @examples
 #' data <- data.frame(y = c(1,2,3,4,5,6), x1 = c(7,6,5,4,3,2), x2 = c(9,8,7,6,5,4))
-#' object<- Linreg$new(formula = y ~ x1 + x2, data = data)
+#' object<- linreg$new(formula = y ~ x1 + x2, data = data)
 #' @import ggplot2
 #' 
 #' @references
@@ -14,8 +14,8 @@
 #' @export
 #' 
 
-Linreg <- setRefClass(
-  "Linreg",
+linreg <- setRefClass(
+  "linreg",
   fields = list(
     formula = "formula",
     data = "data.frame",
