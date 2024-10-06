@@ -5,7 +5,8 @@
 #' @param data The imput data for the model.
 #' @return A object which can return coefficients, residuals, degree of freedom and so on.
 #' @examples
-#' object <- linreg(formula = Petal.Length ~ Sepal.Width + Sepal.Length, data = iris)
+#' data <- data.frame(y = c(1,2,3,4,5,6), x1 = c(7,6,5,4,3,2), x2 = c(9,8,7,6,5,4))
+#' object<- Linreg$new(formula = y ~ x1 + x2, data = data)
 #' @import ggplot2
 #' 
 #' @references
@@ -13,8 +14,8 @@
 #' @export
 #' 
 
-linreg <- setRefClass(
-  "linreg",
+Linreg <- setRefClass(
+  "Linreg",
   fields = list(
     formula = "formula",
     data = "data.frame",
@@ -120,11 +121,10 @@ linreg <- setRefClass(
       .self$residualStandardError <- .self$residualVariance ** 0.5
     },
 
-    #' @description This function implements printing the coefficients matrix of regression.
+    #' @description Function print() implements printing the coefficients matrix of regression.
     #' @examples
-    #' object <- linreg(formula = Petal.Length ~ Sepal.Width + Sepal.Length, data = iris)
     #' object$print()
-    #' 
+    #' @export
     print = function() {
       cat("Call: \n")
       cat(.self$call)
@@ -138,13 +138,13 @@ linreg <- setRefClass(
       for(num in output)
         cat(sprintf("%15f", num))
     },
-    #' @description This function implements plots named "Residuals vs Fitted" and "Scale-Location".
+    #' @description Function plot() implements plots named "Residuals vs Fitted" and "Scale-Location".
     #' @param which "which" determines which plot would be demostrated, when which is 1, "Residuals vs Fitted" demostrated
     #' and when which is 3, "Scale-Location" demostrated.
     #' @examples
-    #' object <- linreg(formula = Petal.Length ~ Sepal.Width + Sepal.Length, data = iris)
     #' object$plot(which = 1)
     #' object$plot(which = 3)
+    #' @export
     plot = function(which = NA) {
       stopifnot(is.numeric(which))
       if(which == 1){
@@ -170,29 +170,29 @@ linreg <- setRefClass(
       }
 
     },
-    #' @description This function returns the residuals
+    #' @description Function resid() returns the residuals
     #' @return The residual matrix of regression
     #' @examples
-    #' object <- linreg(formula = Petal.Length ~ Sepal.Width + Sepal.Length, data = iris)
     #' object$resid()
+    #' @export
     resid = function() {
       return(.self$residuals)
     },
 
-    #' @description This function returns the predicted value of y
+    #' @description Function pred() returns the predicted value of y
     #' @return The predicted value of y
     #' @examples
-    #' object <- linreg(formula = Petal.Length ~ Sepal.Width + Sepal.Length, data = iris)
     #' object$pred()
+    #' @export
     pred = function() {
       return(.self$fittedValues)
     },
 
-    #' @description This function returns the coefficients matrix
+    #' @description Function coef() returns the coefficients matrix
     #' @return The residual matrix of regression
     #' @examples
-    #' object <- linreg(formula = Petal.Length ~ Sepal.Width + Sepal.Length, data = iris)
     #' object$coef()
+    #' @export
     coef = function() {
       output <- as.vector(t(.self$regressionCoeff))
       names <- rownames(.self$regressionCoeff)
@@ -200,12 +200,12 @@ linreg <- setRefClass(
       # aim to pass the unit test, it is necessary to call base::print()
       base::print(output)
     },
-    #' @description This function print return a similar printout as printed for lm objects, but you only need to 
+    #' @description Function summary() prints a similar printout as printed for lm objects, but you only need to 
     #' present the coeffcients with their standard error, t-value and p-value as well as the estimate of residual 
     #' variance and the degrees of freedom in the model.
     #' @examples
-    #' object <- linreg(formula = Petal.Length ~ Sepal.Width + Sepal.Length, data = iris)
     #' object$summary()
+    #' @export
     summary = function() {
       se <- t(t(sqrt(diag(.self$regressionCoefficientsVariance))))
       summary <- cbind(.self$regressionCoeff, se, .self$tValues, .self$cumulativeDistribution)
