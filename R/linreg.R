@@ -138,31 +138,30 @@ linreg <- setRefClass(
       for(num in output)
         cat(sprintf("%15f", num))
     },
-    plot = function() {
-      ggplot() +
-        geom_point(aes(x = .self$fittedValues, y = .self$residuals, color = "red"), 
-                   size = 3, 
-                   alpha = 0.7, 
-                   shape = 1, 
-                   stroke = 1.5, 
-                   fill = NA) + 
-        labs(title = "Residuals vs Fitted",
-             x = "Fitted values",
-             y = "Residuals") +  
+    plot = function(which = NA) {
+      stopifnot(is.numeric(which))
+      if(which == 1){
+        data_p1 <- data.frame(x = .self$fittedValues, y = .self$residuals)
+        ggplot(data_p1, aes(x = x, y = y)) +
+        geom_point(color = "blue", size = 3) + 
+        stat_summary(fun = median, geom = "line", color = "red", linewidth = 1.5) +
+        geom_hline(yintercept = 0, linetype = "dashed", color = "green", linewidth = 0.5) +
+        labs(title = "Residuals vs Fitted", x = "Fitted values", y =  "Residuals") +
+        theme_minimal()
+      }
+      else if(which == 3){
+        standardizedResiduals <- abs(.self$residuals / .self$residualVariance ** 0.5) ** 0.5
+        data_p2 <- data.frame(x = .self$fittedValues, y = standardizedResiduals)
+        ggplot(data_p2, aes(x = x, y = y)) +
+        geom_point(color = "blue", size = 3) + 
+        stat_summary(fun = median, geom = "line", color = "red", linewidth = 1.5) +
+        labs(title = "Scale-Location", x = "Fitted values", y =  expression(sqrt(abs("Standardized Residuals")))) +
         theme_minimal() 
-      
-      standardizedResiduals <- abs(.self$residuals / .self$residualVariance ** 0.5) ** 0.5
-      ggplot() +
-        geom_point(aes(x = .self$fittedValues, y =standardizedResiduals, color = "red"), 
-                   size = 3, 
-                   alpha = 0.7, 
-                   shape = 1, 
-                   stroke = 1.5, 
-                   fill = NA) + 
-        labs(title = "Scale-Location",
-             x = "Fitted values",
-             y = expression(sqrt(abs("Standardized Residuals")))) +  
-        theme_minimal() 
+      }
+      else{
+        cat("input error\n")
+      }
+
     },
     resid = function() {
       return(.self$residuals)
@@ -213,5 +212,6 @@ linreg <- setRefClass(
 )
 
 
-#"Sepal.Length( )*1.7[0-9]*( )*0.0[0-9]*( )*27.5[0-9]*( )*.*( )*\\*\\*\\*".
-# Sepal\.Length         1\.775593       0\.064405      27\.569160              \.\\nResidual standard error: 0\.6465 on 147 degrees of freedom"
+
+
+
