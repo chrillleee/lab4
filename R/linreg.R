@@ -6,11 +6,10 @@
 #' @return A object which can return coefficients, residuals, degree of freedom and so on.
 #' @examples
 #' data <- data.frame(y = c(1,2,3,4,5,6), x = c(7,6,5,4,3,2))
-#' object<- linreg$new(formula = y ~ x, data = data)
+#' object<- linreg(formula = y ~ x, data = data)
 #' @import ggplot2
 #' 
-#' @references
-#' Wikipedia: \href{"https://en.wikipedia.org/wiki/Linear_regression"}{Linear Regression}
+#' @importFrom("methods", "new")
 #' @export
 #' 
 
