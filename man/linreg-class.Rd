@@ -9,17 +9,53 @@
 \item{formula}{A list representing linear regression formula.}
 
 \item{data}{The imput data for the model.}
+
+\item{which}{"which" determines which plot would be demostrated, when which is 1, "Residuals vs Fitted" demostrated
+and when which is 3, "Scale-Location" demostrated.}
 }
 \value{
 A object which can return coefficients, residuals, degree of freedom and so on.
+
+The residual matrix of regression
+
+The predicted value of y
+
+The residual matrix of regression
 }
 \description{
-This function implements different linear regression algorithms.
+This class implements different linear regression algorithms.
+
+This function implements printing the coefficients matrix of regression.
+
+This function implements plots named "Residuals vs Fitted" and "Scale-Location".
+
+This function returns the residuals
+
+This function returns the predicted value of y
+
+This function returns the coefficients matrix
+
+This function print return a similar printout as printed for lm objects, but you only need to 
+present the coeffcients with their standard error, t-value and p-value as well as the estimate of residual 
+variance and the degrees of freedom in the model.
 }
 
 \examples{
-linreg(1, 2)
+object <- linreg(formula = Petal.Length ~ Sepal.Width + Sepal.Length, data = iris)
+object <- linreg(formula = Petal.Length ~ Sepal.Width + Sepal.Length, data = iris)
+object$print()
 
+object <- linreg(formula = Petal.Length ~ Sepal.Width + Sepal.Length, data = iris)
+object$plot(which = 1)
+object$plot(which = 3)
+object <- linreg(formula = Petal.Length ~ Sepal.Width + Sepal.Length, data = iris)
+object$resid()
+object <- linreg(formula = Petal.Length ~ Sepal.Width + Sepal.Length, data = iris)
+object$pred()
+object <- linreg(formula = Petal.Length ~ Sepal.Width + Sepal.Length, data = iris)
+object$coef()
+object <- linreg(formula = Petal.Length ~ Sepal.Width + Sepal.Length, data = iris)
+object$summary()
 }
 \references{
 Wikipedia: \href{"https://en.wikipedia.org/wiki/Linear_regression"}{Linear Regression}
