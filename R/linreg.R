@@ -8,8 +8,7 @@
 #' data <- data.frame(y = c(1,2,3,4,5,6), x = c(7,6,5,4,3,2))
 #' object<- linreg(formula = y ~ x, data = data)
 #' @import ggplot2
-#' 
-#' @importFrom("methods", "new")
+#' @importFrom methods new
 #' @export
 #' 
 
