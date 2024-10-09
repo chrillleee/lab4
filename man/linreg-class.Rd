@@ -42,12 +42,4 @@ variance and the degrees of freedom in the model.
 
 \examples{
 data <- data.frame(y = c(1,2,3,4,5,6), x = c(7,6,5,4,3,2))
-object<- linreg$new(formula = y ~ x, data = data)
-object$print()
-object$plot(which = 1)
-object$plot(which = 3)
-object$resid()
-object$pred()
-object$coef()
-object$summary()
 }

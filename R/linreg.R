@@ -6,7 +6,6 @@
 #' @return A object which can return coefficients, residuals, degree of freedom and so on.
 #' @examples
 #' data <- data.frame(y = c(1,2,3,4,5,6), x = c(7,6,5,4,3,2))
-#' object<- linreg$new(formula = y ~ x, data = data)
 #' @import ggplot2
 #' @import png
 #' @import grid
@@ -132,9 +131,6 @@ linreg <- setRefClass(
     },
 
     #' @description Function print() implements printing the coefficients matrix of regression.
-    #' @examples
-    #' object$print()
-    #' @export
     print = function() {
       cat("Call: \n")
       cat(.self$call)
@@ -151,10 +147,6 @@ linreg <- setRefClass(
     #' @description Function plot() implements plots named "Residuals vs Fitted" and "Scale-Location".
     #' @param which "which" determines which plot would be demostrated, when which is 1, "Residuals vs Fitted" demostrated
     #' and when which is 3, "Scale-Location" demostrated.
-    #' @examples
-    #' object$plot(which = 1)
-    #' object$plot(which = 3)
-    #' @export
     plot = function(which = NA) {
       stopifnot(is.numeric(which))
       if(which == 1){
@@ -190,27 +182,18 @@ linreg <- setRefClass(
     },
     #' @description Function resid() returns the residuals
     #' @return The residual matrix of regression
-    #' @examples
-    #' object$resid()
-    #' @export
     resid = function() {
       return(.self$residuals)
     },
 
     #' @description Function pred() returns the predicted value of y
     #' @return The predicted value of y
-    #' @examples
-    #' object$pred()
-    #' @export
     pred = function() {
       return(.self$fittedValues)
     },
 
     #' @description Function coef() returns the coefficients matrix
     #' @return The residual matrix of regression
-    #' @examples
-    #' object$coef()
-    #' @export
     coef = function() {
       output <- as.vector(t(.self$regressionCoeff))
       names <- rownames(.self$regressionCoeff)
@@ -221,9 +204,6 @@ linreg <- setRefClass(
     #' @description Function summary() prints a similar printout as printed for lm objects, but you only need to 
     #' present the coeffcients with their standard error, t-value and p-value as well as the estimate of residual 
     #' variance and the degrees of freedom in the model.
-    #' @examples
-    #' object$summary()
-    #' @export
     summary = function() {
       se <- t(t(sqrt(diag(.self$regressionCoefficientsVariance))))
       summary <- cbind(.self$regressionCoeff, se, .self$tValues, .self$cumulativeDistribution)
