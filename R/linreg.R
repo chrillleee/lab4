@@ -6,11 +6,11 @@
 #' @return A object which can return coefficients, residuals, degree of freedom and so on.
 #' @examples
 #' data <- data.frame(y = c(1,2,3,4,5,6), x = c(7,6,5,4,3,2))
-#' object<- linreg(formula = y ~ x, data = data)
 #' @import ggplot2
+#' @import png
+#' @import grid
 #' @importFrom methods new
 #' @export
-#' 
 
 linreg <- setRefClass(
   "linreg",
@@ -76,7 +76,18 @@ linreg <- setRefClass(
        .self$calculateCumulativeDistribution()
        .self$residualStandardError <- caluculateResidualStandardError()
       
-    },  
+    },
+    getTheme = function(){
+      return(theme(panel.background = element_rect(fill = rgb(172/255, 234/255, 233/255), color = NA),
+            plot.background = element_rect(fill = rgb(172/255, 234/255, 233/255), color = NA),
+            panel.grid.major = element_blank(),
+            panel.grid.minor = element_blank()))
+    }, 
+    getLogo = function(){
+      logo <- readPNG("resources/liulogo.png")
+      logoRaster <- rasterGrob(logo, width = unit(0.5, "npc"), height = unit(0.5, "npc"))
+      return(logoRaster)
+    }, 
     printMembers = function() {
       cat("Matrix X:\n")
       base::print(.self$cumulativeDistribution)
@@ -120,9 +131,6 @@ linreg <- setRefClass(
     },
 
     #' @description Function print() implements printing the coefficients matrix of regression.
-    #' @examples
-    #' object$print()
-    #' @export
     print = function() {
       cat("Call: \n")
       cat(.self$call)
@@ -139,29 +147,33 @@ linreg <- setRefClass(
     #' @description Function plot() implements plots named "Residuals vs Fitted" and "Scale-Location".
     #' @param which "which" determines which plot would be demostrated, when which is 1, "Residuals vs Fitted" demostrated
     #' and when which is 3, "Scale-Location" demostrated.
-    #' @examples
-    #' object$plot(which = 1)
-    #' object$plot(which = 3)
-    #' @export
     plot = function(which = NA) {
       stopifnot(is.numeric(which))
       if(which == 1){
         data_p1 <- data.frame(x = .self$fittedValues, y = .self$residuals)
         ggplot(data_p1, aes(x = x, y = y)) +
+        annotation_custom(linreg_mod$getLogo())  +
         geom_point(color = "blue", size = 3) + 
         stat_summary(fun = median, geom = "line", color = "red", linewidth = 1.5) +
         geom_hline(yintercept = 0, linetype = "dashed", color = "green", linewidth = 0.5) +
         labs(title = "Residuals vs Fitted", x = "Fitted values", y =  "Residuals") +
-        theme_minimal()
+        theme_minimal() + 
+        .self$getTheme()+
+        coord_cartesian(clip = "off")
       }
       else if(which == 3){
         standardizedResiduals <- abs(.self$residuals / .self$residualVariance ** 0.5) ** 0.5
         data_p2 <- data.frame(x = .self$fittedValues, y = standardizedResiduals)
         ggplot(data_p2, aes(x = x, y = y)) +
+        annotation_custom(linreg_mod$getLogo())  +
         geom_point(color = "blue", size = 3) + 
         stat_summary(fun = median, geom = "line", color = "red", linewidth = 1.5) +
         labs(title = "Scale-Location", x = "Fitted values", y =  expression(sqrt(abs("Standardized Residuals")))) +
-        theme_minimal() 
+        theme_minimal() + 
+        .self$getTheme() +
+        coord_cartesian(clip = "off")
+
+
       }
       else{
         cat("input error\n")
@@ -170,27 +182,18 @@ linreg <- setRefClass(
     },
     #' @description Function resid() returns the residuals
     #' @return The residual matrix of regression
-    #' @examples
-    #' object$resid()
-    #' @export
     resid = function() {
       return(.self$residuals)
     },
 
     #' @description Function pred() returns the predicted value of y
     #' @return The predicted value of y
-    #' @examples
-    #' object$pred()
-    #' @export
     pred = function() {
       return(.self$fittedValues)
     },
 
     #' @description Function coef() returns the coefficients matrix
     #' @return The residual matrix of regression
-    #' @examples
-    #' object$coef()
-    #' @export
     coef = function() {
       output <- as.vector(t(.self$regressionCoeff))
       names <- rownames(.self$regressionCoeff)
@@ -201,9 +204,6 @@ linreg <- setRefClass(
     #' @description Function summary() prints a similar printout as printed for lm objects, but you only need to 
     #' present the coeffcients with their standard error, t-value and p-value as well as the estimate of residual 
     #' variance and the degrees of freedom in the model.
-    #' @examples
-    #' object$summary()
-    #' @export
     summary = function() {
       se <- t(t(sqrt(diag(.self$regressionCoefficientsVariance))))
       summary <- cbind(.self$regressionCoeff, se, .self$tValues, .self$cumulativeDistribution)

@@ -15,5 +15,7 @@ NeedsCompilation: no
 Packaged: 2024-10-6 09:04:00 UTC; kbart
 Imports:
     ggplot2,
-    methods
+    methods,
+    png,
+    grid
 RoxygenNote: 7.3.2
