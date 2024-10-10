@@ -9,8 +9,11 @@
 #' @import ggplot2
 #' @import png
 #' @import grid
+#' @import png
+#' @import grid
 #' @importFrom methods new
-#' @export
+#' @exportClass linreg
+#' @export linreg
 
 linreg <- setRefClass(
   "linreg",
@@ -84,8 +87,11 @@ linreg <- setRefClass(
             panel.grid.minor = element_blank()))
     }, 
     getLogo = function(){
-      logo <- readPNG("resources/liulogo.png")
-      logoRaster <- rasterGrob(logo, width = unit(0.5, "npc"), height = unit(0.5, "npc"))
+      logo_path <- system.file("liulogo.png", package = "lab4")
+      # logo <- readPNG("resources/liulogo.png")
+      if (logo_path == "") stop("Logo not found.")
+      img <- readPNG(logo_path)
+      logoRaster <- rasterGrob(img, width = unit(0.5, "npc"), height = unit(0.5, "npc"))
       return(logoRaster)
     }, 
     printMembers = function() {
@@ -152,7 +158,7 @@ linreg <- setRefClass(
       if(which == 1){
         data_p1 <- data.frame(x = .self$fittedValues, y = .self$residuals)
         ggplot(data_p1, aes(x = x, y = y)) +
-        annotation_custom(linreg_mod$getLogo())  +
+        annotation_custom(.self$getLogo())  +
         geom_point(color = "blue", size = 3) + 
         stat_summary(fun = median, geom = "line", color = "red", linewidth = 1.5) +
         geom_hline(yintercept = 0, linetype = "dashed", color = "green", linewidth = 0.5) +
@@ -165,7 +171,7 @@ linreg <- setRefClass(
         standardizedResiduals <- abs(.self$residuals / .self$residualVariance ** 0.5) ** 0.5
         data_p2 <- data.frame(x = .self$fittedValues, y = standardizedResiduals)
         ggplot(data_p2, aes(x = x, y = y)) +
-        annotation_custom(linreg_mod$getLogo())  +
+        annotation_custom(.self$getLogo())  +
         geom_point(color = "blue", size = 3) + 
         stat_summary(fun = median, geom = "line", color = "red", linewidth = 1.5) +
         labs(title = "Scale-Location", x = "Fitted values", y =  expression(sqrt(abs("Standardized Residuals")))) +
