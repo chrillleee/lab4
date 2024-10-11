@@ -35,11 +35,8 @@ Function pred() returns the predicted value of y
 
 Function coef() returns the coefficients matrix
 
-Function summary() prints a similar printout as printed for lm objects, but you only need to 
-present the coeffcients with their standard error, t-value and p-value as well as the estimate of residual 
+Function summary() prints a similar printout as printed for lm objects, 
+presenting the coeffcients with their standard error, t-value and p-value as well as the estimate of residual 
 variance and the degrees of freedom in the model.
 }
 
-\examples{
-data <- data.frame(y = c(1,2,3,4,5,6), x = c(7,6,5,4,3,2))
-}

@@ -4,13 +4,12 @@
 #' @param formula A list representing linear regression formula.
 #' @param data The imput data for the model.
 #' @return A object which can return coefficients, residuals, degree of freedom and so on.
-#' @examples
-#' data <- data.frame(y = c(1,2,3,4,5,6), x = c(7,6,5,4,3,2))
 #' @import ggplot2
 #' @import png
 #' @import grid
 #' @importFrom methods new
-#' @export
+#' @export linreg
+#' @exportClass linreg
 
 linreg <- setRefClass(
   "linreg",
@@ -84,7 +83,14 @@ linreg <- setRefClass(
             panel.grid.minor = element_blank()))
     }, 
     getLogo = function(){
-      logo <- readPNG("resources/liulogo.png")
+      # the plot() example in vigenttes cannot access logo.png via this path
+      # so i used try catch to fix that
+      logo <- tryCatch({
+        readPNG("inst/resources/liulogo.png")
+      },error = function(e){
+        readPNG("../inst/resources/liulogo.png")
+      })
+      # logo <- readPNG("resources/liulogo.png")
       logoRaster <- rasterGrob(logo, width = unit(0.5, "npc"), height = unit(0.5, "npc"))
       return(logoRaster)
     }, 
@@ -152,7 +158,7 @@ linreg <- setRefClass(
       if(which == 1){
         data_p1 <- data.frame(x = .self$fittedValues, y = .self$residuals)
         ggplot(data_p1, aes(x = x, y = y)) +
-        annotation_custom(linreg_mod$getLogo())  +
+        annotation_custom(.self$getLogo())  +
         geom_point(color = "blue", size = 3) + 
         stat_summary(fun = median, geom = "line", color = "red", linewidth = 1.5) +
         geom_hline(yintercept = 0, linetype = "dashed", color = "green", linewidth = 0.5) +
@@ -165,7 +171,7 @@ linreg <- setRefClass(
         standardizedResiduals <- abs(.self$residuals / .self$residualVariance ** 0.5) ** 0.5
         data_p2 <- data.frame(x = .self$fittedValues, y = standardizedResiduals)
         ggplot(data_p2, aes(x = x, y = y)) +
-        annotation_custom(linreg_mod$getLogo())  +
+        annotation_custom(.self$getLogo())  +
         geom_point(color = "blue", size = 3) + 
         stat_summary(fun = median, geom = "line", color = "red", linewidth = 1.5) +
         labs(title = "Scale-Location", x = "Fitted values", y =  expression(sqrt(abs("Standardized Residuals")))) +
@@ -201,8 +207,8 @@ linreg <- setRefClass(
       # aim to pass the unit test, it is necessary to call base::print()
       base::print(output)
     },
-    #' @description Function summary() prints a similar printout as printed for lm objects, but you only need to 
-    #' present the coeffcients with their standard error, t-value and p-value as well as the estimate of residual 
+    #' @description Function summary() prints a similar printout as printed for lm objects, 
+    #' presenting the coeffcients with their standard error, t-value and p-value as well as the estimate of residual 
     #' variance and the degrees of freedom in the model.
     summary = function() {
       se <- t(t(sqrt(diag(.self$regressionCoefficientsVariance))))
