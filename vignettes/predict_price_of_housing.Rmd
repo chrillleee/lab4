@@ -1,0 +1,168 @@
+---
+title: "Ridge Regression Model and Feature Selection"
+author: "Cui Qingxuan"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Ridge Regression Model and Feature Selection}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+```{r}
+library(lab4)
+```
+# 1. Dataset
+
+## 1.1 Load Dataset
+
+```{r}
+library(mlbench)
+data("BostonHousing")
+```
+
+## 1.2 Dataset Demostrate
+
+```{r}
+data <- BostonHousing
+head(data)
+```
+
+The target variable is medv, the rest of whom are features.
+
+## 1.3 Split Dataset
+
+```{r}
+library(caret)
+set.seed(123)
+# it can reapper the proportion of split
+
+trainIndex <- createDataPartition(data$medv, p = .8, 
+                                  list = FALSE, 
+                                  times = 1)
+# set the train proportion as 0.9
+
+train_data <- data[trainIndex,]
+test_data <- data[-(trainIndex * 0.75),]
+valid_data <- data[-(trainIndex * 0.25),]
+
+dim(data)
+dim(train_data)
+dim(test_data)
+```
+
+# 2. Train LM Model and LM with Forward Selection of Covariates 
+
+## 2.1 Linear Regression
+
+```{r}
+linear_model <- lm(formula = medv ~ ., data =  train_data)
+summary(linear_model) 
+```
+
+## 2.2 Forward Selection
+
+***Initialize and Train the Forward Model***
+
+```{r}
+library(leaps) 
+forward_model <- regsubsets(medv ~ ., data = train_data, 
+                             method = "forward", nbest = 1)
+summary(forward_model)
+```
+
+***Find the Best Formula and Fit the Best Combination***
+
+```{r}
+best_vars <- summary(forward_model)$which[which.max(summary(forward_model)$adjr2), ]
+selected_vars <- names(best_vars)[-1][best_vars[-1]]
+selected_vars[which(selected_vars == "chas1")] <- "chas"
+# forward_model rename my variable name......
+formula_forward <- as.formula(paste("medv ~", paste(selected_vars, collapse = " + ")))
+
+forward_fit <- lm(formula_forward, data = train_data)
+summary(forward_fit)
+```
+***Calculate the Output***
+```{r}
+
+output <- predict(linear_model, train_data)
+mse <- mean((output - train_data$medv)^2)
+print(paste("Mean Squared Error of Basic Model:", mse))
+print(paste("R^2 of Linear Model: ", summary(linear_model)$adj.r.squared))
+output_forward <- predict(forward_fit, train_data)
+mse_forward <- mean((output_forward - train_data$medv)^2)
+print(paste("Mean Squared Error of Forward Fitted Model:", mse_forward))
+print(paste("R^2 of Forward Selected Linear Model: ", summary(forward_fit)$adj.r.squared))
+```
+# 3. Train Ridge Regression Model
+
+```{r}
+ridgeReg <- list(type = "Regression",
+                 library = NULL,
+                 loop = NULL,
+                 parameters = data.frame(parameter = "lambda",
+                                          class = "numeric",
+                                          label = "lambda"),
+                 grid = function(x, y, len = NULL, search = NULL) {
+                   data.frame(lambda = seq(0.1, 10, length = len)) 
+                 },
+                 fit = function(x, y, wts, param, lev, last, classProbs, ...){
+                   y <- as.data.frame(y)
+                   ridge <- linreg(y~., data = cbind(y,x) , model = "ridge")
+                   ridge$ridgereg(lambda = param, method = 1)
+                   return(ridge)
+                 },
+                 predict = function(modelFit, newdata, submodels = NULL){
+                   newdata <- as.matrix(newdata)
+                   newdata <- matrix(as.numeric(newdata), nrow = nrow(newdata), ncol = ncol(newdata))
+                   #regularization
+                   newdata <- (newdata - mean(newdata)) / sd(newdata)
+                   newdata <- cbind(1,newdata)
+                   output <- newdata %*% modelFit$regressionCoeff
+                   return (output)
+                 },
+                 metric = "MSE",
+                 prob = NULL
+              )
+
+target <- as.data.frame(train_data$medv)
+colnames(target) <- "medv"
+
+train_control <- trainControl(method = "cv", number = 10)
+ridge_model <- train(
+  x = as.data.frame(train_data[, -which(names(train_data) == "medv")]),
+  y = train_data$medv,
+  method = ridgeReg,
+  trControl = train_control,
+)
+
+ridge_model
+```
+
+Apparently, the optimal lambda is 0.10, so I will predict test data set based on that
+
+```{r}
+lambda <- 0.1
+
+rm_optimal_lambda <- train(
+  x = as.data.frame(train_data[, -which(names(train_data) == "medv")]),
+  y = train_data$medv,
+  method = ridgeReg,
+  trControl = train_control,
+  tuneGrid = expand.grid(lambda = lambda) 
+)
+
+
+
+x_test <- test_data[, -which(names(train_data) == "medv")]
+
+y_test <- test_data$medv
+predictions <- predict(rm_optimal_lambda, newdata = x_test)
+
+rmse <- sqrt(mean((predictions - y_test) ^ 2))
+cat("Root Mean Squared Error (RMSE):", rmse, "\n")
+
+```
+
+
+

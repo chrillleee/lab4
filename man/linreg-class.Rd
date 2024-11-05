@@ -10,8 +10,16 @@
 
 \item{data}{The imput data for the model.}
 
+\item{method}{This parameter determines the calculation method.}
+
+\item{model}{This parameter determines which model you choose.}
+
 \item{which}{"which" determines which plot would be demostrated, when which is 1, "Residuals vs Fitted" demostrated
 and when which is 3, "Scale-Location" demostrated.}
+
+\item{newData}{Calculate output based on new data}
+
+\item{lambda}{Hyper parameter}
 }
 \value{
 A object which can return coefficients, residuals, degree of freedom and so on.
@@ -38,5 +46,7 @@ Function coef() returns the coefficients matrix
 Function summary() prints a similar printout as printed for lm objects, 
 presenting the coeffcients with their standard error, t-value and p-value as well as the estimate of residual 
 variance and the degrees of freedom in the model.
+
+This function is implemented for initializing the ridge regression model
 }
 

@@ -1,0 +1,38 @@
+---
+title: "Ridge Regression Usage"
+author: "Cui Qingxuan"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Ridge Regression Usage}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+
+# Introduction of Ridge Regression Function
+
+This rmd file is used to demostrate how to use customised ridge regression model via example.
+There are some specification about its structure. The definition of ridge regression model implemented in the definition of linreg class as a function. However, we need to invoke it after initialization. Here is example.
+```{r}
+library(lab4)
+```
+
+## Initialize the class with parameter named "ridge"
+
+```{r}
+example <- linreg$new(Petal.Length~Species, data = iris, model = "ridge")
+```
+
+## Invoke the function to calculate the coefficients
+
+You can set the method as 1 or 2, the former one represent linear algebra method, and the later one for QR decomposition method.
+```{r}
+example$ridgereg(lambda = 0.2, method = 1)
+```
+After invocation, both the coefficients and fitted value have been calculated, but you can still directly invoke the function pred(), to predict.
+```{r}
+example$print()
+```
+Of course you can invoke print to check that.
+

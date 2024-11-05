@@ -3,6 +3,8 @@
 #' @description This class implements different linear regression algorithms.
 #' @param formula A list representing linear regression formula.
 #' @param data The imput data for the model.
+#' @param method This parameter determines the calculation method.
+#' @param model This parameter determines which model you choose.
 #' @return A object which can return coefficients, residuals, degree of freedom and so on.
 #' @import ggplot2
 #' @import png
@@ -33,47 +35,60 @@ linreg <- setRefClass(
   ),
   methods = list(
     # constructor
-    initialize = function(formula = NA, data = NA, method = NA) {
+    initialize = function(formula = NA, data = NA, method = NA, model = NA) {
       stopifnot(rlang::is_formula(formula))
       stopifnot(is.data.frame(data))
+      stopifnot(is.character(model))
       .self$formula <- formula  
       .self$data <- data 
       .self$X <- model.matrix(formula, data)  
       .self$y <- all.vars(formula)[1]
-      .self$call <- paste("linreg(formula = ", deparse(formula), ", data = ", deparse(substitute(data)), ")", sep = "")
-      # .self$formula_name <-  deparse(formula)
-      # .self$data_name <- deparse(substitute(data))
-      # 1.2.2
-      if(is.character(method)){
-        y_ <- .self$data[[.self$y]]
-        qr_decop <- qr(.self$X)
-        q_matrix <- qr.Q(qr_decop)
-        r_matrix <- qr.R(qr_decop) 
-        qt_y <- t(q_matrix) %*% y_
-  
-        .self$fittedValues <- q_matrix %*% qt_y
-        .self$regressionCoeff <- solve(r_matrix) %*% qt_y
-        .self$calculateDegreesOfFreedom()
-        .self$residuals <- y_ - .self$fittedValues
-        .self$calculateResidualVariance()
-        .self$regressionCoefficientsVariance <- .self$residualVariance * solve(r_matrix) %*% t(solve(r_matrix))
-
+      
+      
+      
+      if(model == "ridge"){
+        .self$call <- paste("ridge(formula = ", deparse(formula), ", data = ", deparse(substitute(data)), ")", sep = "")
         
-       }
-       else if(!is.na(method)){
-         stop("incorrect parameter method")
-       }
-       else{
-        .self$calculateRegressionCoeff()
-        .self$calculateFittedValues()
-        .self$calculateResiduals()
-        .self$calculateDegreesOfFreedom()
-        .self$calculateResidualVariance()
-        .self$calculateRegressionCoefficientsVariance()
-       }
-       .self$calculateTDistribution()
-       .self$calculateCumulativeDistribution()
-       .self$residualStandardError <- caluculateResidualStandardError()
+        # I do not plan calculate the coefficients here, 'cause it the name of initialize function is linreg
+        # which means i have to call the function manually.
+      }
+      else if(model == "linear"){
+        .self$call <- paste("linreg(formula = ", deparse(formula), ", data = ", deparse(substitute(data)), ")", sep = "")
+        # 1.2.2
+        if(is.character(method)){
+          y_ <- .self$data[[.self$y]]
+          qr_decop <- qr(.self$X)
+          q_matrix <- qr.Q(qr_decop)
+          r_matrix <- qr.R(qr_decop) 
+          qt_y <- t(q_matrix) %*% y_
+          
+          .self$fittedValues <- q_matrix %*% qt_y
+          .self$regressionCoeff <- solve(r_matrix) %*% qt_y
+          .self$calculateDegreesOfFreedom()
+          .self$residuals <- y_ - .self$fittedValues
+          .self$calculateResidualVariance()
+          .self$regressionCoefficientsVariance <- .self$residualVariance * solve(r_matrix) %*% t(solve(r_matrix))
+          
+          
+        }
+        else if(!is.na(method)){
+          stop("incorrect parameter method")
+        }
+        else{
+          .self$calculateRegressionCoeff()
+          .self$calculateFittedValues()
+          .self$calculateResiduals()
+          .self$calculateDegreesOfFreedom()
+          .self$calculateResidualVariance()
+          .self$calculateRegressionCoefficientsVariance()
+        }
+        .self$calculateTDistribution()
+        .self$calculateCumulativeDistribution()
+        .self$residualStandardError <- caluculateResidualStandardError()
+      }
+      else{
+        stop("You can only choose ridge or linear model!")
+      }
       
     },
     getTheme = function(){
@@ -178,8 +193,6 @@ linreg <- setRefClass(
         theme_minimal() + 
         .self$getTheme() +
         coord_cartesian(clip = "off")
-
-
       }
       else{
         cat("input error\n")
@@ -193,9 +206,10 @@ linreg <- setRefClass(
     },
 
     #' @description Function pred() returns the predicted value of y
+    #' @param newData Calculate output based on new data
     #' @return The predicted value of y
     pred = function() {
-      return(.self$fittedValues)
+      return(fittedValues)
     },
 
     #' @description Function coef() returns the coefficients matrix
@@ -241,11 +255,54 @@ linreg <- setRefClass(
         cat("\n")
       }
       cat("Residual standard error: ", round(.self$residualStandardError, 4), " on ", .self$dof," degrees of freedom", sep = "")
+    },
+    #' @description This function is implemented for initializing the ridge regression model 
+    #' @param lambda Hyper parameter
+    ridgereg = function(lambda, method, regularization = FALSE){
+      if(!is.numeric(lambda)){
+        lambda <- as.numeric(lambda)
+      }
+      # method = 1, we use linear algebra
+      # method = 2, we use QR decomposition
+      stopifnot(is.numeric(lambda))
+      stopifnot(is.logical(regularization))
+      lambda_I <- diag(lambda, ncol(.self$X))
+      unsolved_matrix <- t(.self$X) %*%.self$X + lambda_I
+      
+      if(regularization){
+        regularize()
+      }
+     
+      if(method == 1){
+        if(det(unsolved_matrix) != 0){
+          .self$regressionCoeff <- solve(unsolved_matrix) %*% t(.self$X) %*% .self$data[[.self$y]]
+        }
+        else{
+          stop("the matrix is singular!")
+        }
+      }
+      else if(method == 2){
+        tilde_X <- rbind(.self$X, lambda**0.5 * diag(ncol(.self$X)))  
+        tilde_y <- c(.self$data[[.self$y]], rep(0, ncol(.self$X)))  
+        qr_decomp <- qr(tilde_X)
+        .self$regressionCoeff <- as.matrix(qr.coef(qr_decomp, tilde_y))
+      }
+      else
+        stop("no such method.")
+      
+      .self$calculateFittedValues()
+    },
+    regularize = function(){
+      .self$X <- .self$X[, -1]
+      .self$X <- (.self$X - mean(.self$X)) / sd(.self$X)
+      .self$X <- cbind(1, .self$X)
     }
   )
 )
 
 
 
-
+#  mod_object <- linreg(Petal.Length~Species, data = iris, model = "ridge")
+# mod_object$ridgereg(lambda = 0.2, method = 2)
+# mod_object$print()
 

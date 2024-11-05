@@ -12,7 +12,11 @@ Depends: R (>= 3.5.0)
 Suggests: 
     knitr,
     rmarkdown,
-    testthat (>= 3.0.0)
+    testthat (>= 3.0.0),
+    caret,
+    leaps,
+    MASS,
+    mlbench
 Config/testthat/edition: 3
 NeedsCompilation: no
 Packaged: 2024-10-6 09:04:00 UTC; kbart
@@ -20,6 +24,10 @@ Imports:
     ggplot2,
     methods,
     png,
-    grid
+    grid,
+    dplyr,
+    nycflights13
 RoxygenNote: 7.3.2
 VignetteBuilder: knitr
+LazyData: true
+LazyDataCompression: xz

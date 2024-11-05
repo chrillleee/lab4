@@ -21,7 +21,7 @@ This package implement a class to create a linear regression model. You can see 
 To initialize the class, 2 parameters required, one is formula in the type of "language", another is data in the type of "matrix". Take the iris dataset for example:
 
 ```{r initialization example}
-object <- linreg(formula = Petal.Length ~ Species ,data = iris)
+object <- linreg(formula = Petal.Length ~ Species ,data = iris, model = "linear")
 
 ```
 
